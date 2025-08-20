@@ -1,13 +1,15 @@
-# Environment: 2 rooms A and B
+import random
+
+# Environment: 2 rooms A and B, both start dirty
 environment = {
-    "A": random.choice(["Clean", "Dirty"]),
-    "B": random.choice(["Clean", "Dirty"])
+    "A": "Dirty",
+    "B": "Dirty"
 }
 
 # Simple Reflex Agent
 def simple_reflex_agent(location, status):
     if status == "Dirty":
-        return "Suck"
+        return "Cleanit please"
     elif location == "A":
         return "Right"
     else:
