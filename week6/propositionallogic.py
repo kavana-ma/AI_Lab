@@ -1,9 +1,9 @@
 import itertools
+import re
 
 def evaluate(expr, model):
     """
-    Replaces propositional symbols with their truth values from model
-    and evaluates the expression.
+    Evaluate a propositional logic expression under a given model (assignment).
     Supported operators:
       ~ : NOT
       ^ : AND
@@ -11,25 +11,34 @@ def evaluate(expr, model):
       ->: IMPLIES
       <->: BICONDITIONAL
     """
-    for sym, val in model.items():
-        expr = expr.replace(sym, str(val))
-    
-    expr = expr.replace("~", " not ")
+
+    # Replace biconditional and implication first
+    expr = expr.replace("<->", " == ")
+    expr = expr.replace("->", " <= ")
+
+    # Replace negation ~ with explicit parentheses (not X)
+    expr = re.sub(r'~(\w+)', r'(not \1)', expr)
+    expr = re.sub(r'~\(([^)]+)\)', r'(not (\1))', expr)
+
+    # Replace AND and OR
     expr = expr.replace("^", " and ")
     expr = expr.replace("v", " or ")
-    expr = expr.replace("->", " <= ")   # a -> b is equivalent to not a or b
-    expr = expr.replace("<->", " == ")  # a <-> b is equivalent to (a and b) or (~a and ~b)
-    
+
+    # Replace symbols with their boolean values in the model
+    for sym, val in model.items():
+        expr = re.sub(r'\b' + re.escape(sym) + r'\b', str(val), expr)
+
+    # Evaluate the final Python boolean expression
     return eval(expr)
+
 
 def tt_entails(kb, query, symbols):
     """
-    KB: knowledge base expression (string)
-    query: query expression (string)
-    symbols: list of all propositional symbols used
+    Truth-table enumeration to check if KB entails Query.
+    Prints the truth table and returns True if entails, else False.
     """
-    entails = True
 
+    entails = True
     models = list(itertools.product([True, False], repeat=len(symbols)))
 
     print("Truth Table Evaluation:\n")
@@ -57,6 +66,8 @@ def tt_entails(kb, query, symbols):
         print("The Knowledge Base does NOT entail the Query (KB ⊭ Query)")
 
 
+# Example usage:
+
 kb = "(Q -> P) ^ (P -> ~Q) ^ (Q v R)"
 symbols = ["P", "Q", "R"]
 
@@ -66,4 +77,3 @@ for query in queries:
     print(f"\nEvaluating Query: {query}\n")
     tt_entails(kb, query, symbols)
     print("\n" + "="*50 + "\n")
-
